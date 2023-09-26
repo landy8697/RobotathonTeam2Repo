@@ -26,6 +26,8 @@ limitations under the License.
 #include <ESP32SharpIR.h>
 #include <QTRSensors.h>
 
+#define LED 2
+
 //
 // README FIRST, README FIRST, README FIRST
 //
@@ -118,6 +120,8 @@ void setup() {
     //     delay(20);
     // }
     // qtr.calibrate();
+
+    pinMode(LED, OUTPUT);
 }
 
 // Arduino loop function. Runs in CPU 1
@@ -178,4 +182,8 @@ void loop() {
     // }
     vTaskDelay(1);
     // delay(100);
+
+    digitalWrite(LED, HIGH);
+    delay(100);
+    digitalWrite(LED, LOW);
 }
