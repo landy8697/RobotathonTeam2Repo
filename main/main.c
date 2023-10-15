@@ -22,7 +22,6 @@ limitations under the License.
 #include <btstack_run_loop.h>
 #include <hci_dump.h>
 #include <hci_dump_embedded_stdout.h>
-
 #include "sdkconfig.h"
 #include "uni_esp32.h"
 #include "uni_main.h"

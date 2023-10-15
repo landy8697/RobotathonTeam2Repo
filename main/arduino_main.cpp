@@ -84,6 +84,7 @@ void onDisconnectedGamepad(GamepadPtr gp) {
 }
 
 Servo servo;
+Servo servo2;
 ESP32SharpIR sensor1( ESP32SharpIR::GP2Y0A21YK0F, 27);
 QTRSensors qtr;
 
@@ -107,19 +108,22 @@ void setup() {
 	ESP32PWM::allocateTimer(3);
     servo.setPeriodHertz(50);
     servo.attach(12, 1000, 2000);
+    servo2.setPeriodHertz(50);
+    servo2.attach(13, 1000, 2000);
 
-    // Serial.begin(115200);
+    Serial.begin(115200);
     // sensor1.setFilterRate(0.1f);
 
     // qtr.setTypeRC(); // or setTypeAnalog()
-    // qtr.setSensorPins((const uint8_t[]) {12,13,14}, 3);
-    // for (uint8_t i = 0; i < 250; i++)
-    // {
-    //     Serial.println("calibrating");
-    //     qtr.calibrate();
-    //     delay(20);
-    // }
-    // qtr.calibrate();
+    qtr.setTypeAnalog();
+    qtr.setSensorPins((const uint8_t[]) {5, 17, 16}, 3);
+    for (uint8_t i = 0; i < 250; i++)
+    {
+        Serial.println("calibrating");
+        qtr.calibrate();
+        delay(20);
+    }
+    qtr.calibrate();
 
     pinMode(LED, OUTPUT);
 }
@@ -131,16 +135,16 @@ void loop() {
     // The gamepads pointer (the ones received in the callbacks) gets updated
     // automatically.
     BP32.update();
-
+    
     // It is safe to always do this before using the gamepad API.
     // This guarantees that the gamepad is valid and connected.
-    for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
-        GamepadPtr myGamepad = myGamepads[i];
+    GamepadPtr myGamepad = myGamepads[0];
 
         if (myGamepad && myGamepad->isConnected()) {
-
-            servo.write( ((((float) myGamepad->axisY()) / 512.0f) * 500) + 1500 );
-
+            float rate =  ((((float) myGamepad->axisY()) / 512.0f) * 500) + 1500 ;
+            servo.write(rate);
+            servo2.write(-1 * rate);
+            
             // Another way to query the buttons, is by calling buttons(), or
             // miscButtons() which return a bitmask.
             // Some gamepads also have DPAD, axis and more.
@@ -162,30 +166,37 @@ void loop() {
             // You can query the axis and other properties as well. See Gamepad.h
             // For all the available functions.
         }
-    }
+    // for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
+        
+    // }
 
     // Serial.println(sensor1.getDistanceFloat());
 
-    // uint16_t sensors[3];
-    // int16_t position = qtr.readLineBlack(sensors);
-    // int16_t error = position - 1000;
-    // if (error < 0)
-    // {
-    //     Serial.println("On the left");
-    // }
-    // if (error > 0)
-    // {
-    //     Serial.println("On the right");
-    // }
-    // if(error == 0){
-    //     Serial.println("Straight Ahead");  
-    // }
+    uint16_t sensors[3];
+    int16_t position = qtr.readLineBlack(sensors);
+    int16_t error = position - 1000;
+    Serial.println(position);
+    if (error < 0)
+    {
+        Serial.println("On the left");
+    }
+    if (error > 0)
+    {
+        Serial.println("On the right");
+    }
+    if(error == 0){
+        Serial.println("Straight Ahead");  
+    }
     vTaskDelay(1);
     // delay(100);
-
+    
+    //servo.write(1000);
+    //servo2.write(-1000);
     digitalWrite(LED, HIGH);
-    delay(100);
+    delay(50);
     digitalWrite(LED, LOW);
-    delay(100);
+    delay(50);
+    delay(300);
+    Serial.println("CYCLE");
     
 }
