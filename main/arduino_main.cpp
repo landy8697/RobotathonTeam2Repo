@@ -88,6 +88,10 @@ Servo servo2;
 ESP32SharpIR sensor1( ESP32SharpIR::GP2Y0A21YK0F, 27);
 QTRSensors qtr;
 
+static int servoVal(int input){
+    return input+1500;
+}
+
 // Arduino setup function. Runs in CPU 1
 void setup() {
     // Console.printf("Firmware: %s\n", BP32.firmwareVersion());
@@ -107,16 +111,16 @@ void setup() {
 	ESP32PWM::allocateTimer(2);
 	ESP32PWM::allocateTimer(3);
     servo.setPeriodHertz(50);
-    servo.attach(12, 1000, 2000);
+    servo.attach(12, 1000, 2000); //right
     servo2.setPeriodHertz(50);
-    servo2.attach(13, 1000, 2000);
+    servo2.attach(13, 1000, 2000); //left
 
     Serial.begin(115200);
     // sensor1.setFilterRate(0.1f);
 
     // qtr.setTypeRC(); // or setTypeAnalog()
     qtr.setTypeAnalog();
-    qtr.setSensorPins((const uint8_t[]) {5, 17, 16}, 3);
+    qtr.setSensorPins((const uint8_t[]) {35, 34, 39}, 3);
     for (uint8_t i = 0; i < 250; i++)
     {
         Serial.println("calibrating");
@@ -134,7 +138,9 @@ void loop() {
     // Just call this function in your main loop.
     // The gamepads pointer (the ones received in the callbacks) gets updated
     // automatically.
-    BP32.update();
+
+    //Turn on when need controller
+    //BP32.update();
     
     // It is safe to always do this before using the gamepad API.
     // This guarantees that the gamepad is valid and connected.
@@ -144,7 +150,10 @@ void loop() {
             float rate =  ((((float) myGamepad->axisY()) / 512.0f) * 500) + 1500 ;
             servo.write(rate);
             servo2.write(-1 * rate);
-            
+            digitalWrite(LED, HIGH);
+            delay(50);
+            digitalWrite(LED, LOW);
+            delay(50);
             // Another way to query the buttons, is by calling buttons(), or
             // miscButtons() which return a bitmask.
             // Some gamepads also have DPAD, axis and more.
@@ -174,29 +183,32 @@ void loop() {
 
     uint16_t sensors[3];
     int16_t position = qtr.readLineBlack(sensors);
-    int16_t error = position - 1000;
+    int16_t error = position - 500; //500 for 2 sensors only
     Serial.println(position);
     if (error < 0)
     {
+        //servo.write(servoVal(500));
+        //servo.write(servoVal(500));
         Serial.println("On the left");
+
     }
     if (error > 0)
     {
+        //servo.write(servoVal(-500));
+        //servo2.write(servoVal(-500));
         Serial.println("On the right");
     }
     if(error == 0){
-        Serial.println("Straight Ahead");  
+        Serial.println("Straight Ahead"); 
+
+        //servo.write(servoVal(500));
+        //servo2.write(servoVal(-500));
     }
     vTaskDelay(1);
     // delay(100);
     
-    //servo.write(1000);
-    //servo2.write(-1000);
-    digitalWrite(LED, HIGH);
-    delay(50);
-    digitalWrite(LED, LOW);
-    delay(50);
     delay(300);
     Serial.println("CYCLE");
     
 }
+
